@@ -1,0 +1,48 @@
+.desglose-box {
+    margin-top: 20px;
+    padding: 15px 20px;
+    background: #fafafa;
+    border-radius: 8px;
+    border: 1px solid #e5e5e5;
+}
+
+.desglose-box h4 {
+    margin: 0 0 15px;
+    font-size: 15px;
+    font-weight: bold;
+    color: #333;
+}
+
+.desglose-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 4px 0;
+    font-size: 14px;
+}
+
+.desglose-item.total {
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px solid #ddd;
+    font-weight: bold;
+    font-size: 16px;
+}
+
+
+/* Modal nuevo huesped */
+.modal.mini {
+    width: 350px;
+}
+.btn-mini {
+    font-size: 13px;
+    padding: 4px 8px;
+    margin-bottom: 5px;
+    background: #4f46e5;
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+}
+.btn-mini:hover{
+    background: #4338ca;
+}
