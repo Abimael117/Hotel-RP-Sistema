@@ -1,3 +1,4 @@
+/* ====== DESGLOSE DE PAGO ====== */
 .desglose-box {
     margin-top: 20px;
     padding: 15px 20px;
@@ -28,11 +29,11 @@
     font-size: 16px;
 }
 
-
-/* Modal nuevo huesped */
+/* ===== MODAL NUEVO HUÉSPED (MINI) ===== */
 .modal.mini {
     width: 350px;
 }
+
 .btn-mini {
     font-size: 13px;
     padding: 4px 8px;
@@ -43,6 +44,32 @@
     border-radius: 6px;
     cursor: pointer;
 }
-.btn-mini:hover{
+
+.btn-mini:hover {
     background: #4338ca;
+}
+
+
+/* ===== OCUPACIÓN (Sencilla / Doble en una línea) ===== */
+.ocupacion-row {
+    display: flex;
+    align-items: center;
+    gap: 40px;        /* separación entre Sencilla y Doble */
+    margin: 6px 0 14px;
+}
+
+.radio-option {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 15px;
+    cursor: pointer;
+    user-select: none;
+}
+
+.radio-option input[type="radio"] {
+    width: 18px;
+    height: 18px;
+    accent-color: #4f46e5;
+    cursor: pointer;
 }

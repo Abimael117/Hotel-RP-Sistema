@@ -1,4 +1,9 @@
-<?php include("../views/layout/header.php"); ?>
+<?php
+require_once("../config/auth_middleware.php");
+require_once("../config/db.php");
+include("../views/layout/header.php");
+?>
+
 
 <link rel="stylesheet" href="assets/css/usuarios.css">
 

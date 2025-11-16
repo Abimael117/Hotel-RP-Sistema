@@ -1,5 +1,36 @@
+/* GRID */
+.room-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 20px;
+}
+
+/* CARD */
+.room-card {
+    background: white;
+    padding: 20px;
+    border-radius: 12px;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.06);
+    border: 1px solid #e2e8f0;
+}
+
+/* HEADER */
+.room-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;   /* <-- AQUÍ SE ALINEA PERFECTO EL TÍTULO Y LOS 3 PUNTOS */
+    margin-bottom: 12px;
+}
+
+.room-header h3 {
+    font-size: 20px;
+    font-weight: 600;
+}
+
+/* MENU 3 PUNTITOS — ahora alineado con FLEX, no absolute */
 .menu-container {
-    position: relative;
+    display: flex;
+    align-items: center;
 }
 
 .menu-button {
@@ -15,11 +46,12 @@
     background: #f1f1f1;
 }
 
-/* Menú oculto por defecto */
+/* DROPDOWN */
+/* DROPDOWN con animación */
 .menu-dropdown {
     position: absolute;
     top: 28px;
-    right: 0;
+    right: 20px;
     background: white;
     width: 180px;
     padding: 10px;
@@ -27,14 +59,20 @@
     box-shadow: 0px 4px 12px rgba(0,0,0,0.15);
     display: none;
     z-index: 50;
+
+    /* Animación */
+    opacity: 0;
+    transform: translateY(-8px);
+    transition: opacity .18s ease, transform .18s ease;
 }
 
-/* Cuando se hace visible */
+/* Cuando se abre */
 .menu-dropdown.show {
     display: block;
+    opacity: 1;
+    transform: translateY(0);
 }
 
-/* Estilo de botones */
 .menu-dropdown button {
     width: 100%;
     background: none;
@@ -44,18 +82,57 @@
     cursor: pointer;
     border-radius: 6px;
     font-size: 14px;
+    transition: background 0.2s;
 }
 
 .menu-dropdown button:hover {
     background: #f5f5f5;
 }
 
-.menu-delete {
-    color: #d9534f;
-    font-weight: bold;
+
+/* BADGES */
+.badge {
+    display: inline-block;
+    padding: 4px 10px;
+    font-size: 12px;
+    border-radius: 10px;
+    margin-bottom: 10px;
 }
 
-.menu-title {
+.badge.disponible {
+    background: #d1fae5;
+    color: #065f46;
+}
+
+.badge.ocupada {
+    background: #fee2e2;
+    color: #991b1b;
+}
+
+.badge.mantenimiento {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+/* ICONOS */
+.icon {
+    width: 18px;
+    height: 18px;
+    margin-right: 5px;
+    opacity: 0.7;
+    vertical-align: middle;
+}
+
+/* INFORMACIÓN */
+.room-info {
+    margin-bottom: 6px;
+    color: #475569;
+    font-size: 14px;
+}
+
+.room-price {
+    margin-top: 12px;
     font-weight: bold;
-    margin-bottom: 8px;
+    font-size: 16px;
+    color: #1e3a8a;
 }

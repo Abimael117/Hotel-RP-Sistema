@@ -1,4 +1,9 @@
-<?php include("../views/layout/header.php"); ?>
+<?php
+require_once("../config/auth_middleware.php");
+require_once("../config/db.php");
+include("../views/layout/header.php");
+?>
+
 
 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
     <h1>Habitaciones</h1>

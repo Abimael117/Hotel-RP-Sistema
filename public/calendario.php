@@ -1,11 +1,5 @@
-<?php 
-session_start();
-
-if (!isset($_SESSION["user"])) {
-    header("Location: index.php");
-    exit;
-}
-
+<?php
+require_once("../config/auth_middleware.php"); // <-- NUEVO
 require_once("../config/db.php");
 
 // Obtener reservas activas

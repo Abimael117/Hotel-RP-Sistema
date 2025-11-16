@@ -1,4 +1,9 @@
-<?php include("../views/layout/header.php"); ?>  
+<?php
+require_once("../config/auth_middleware.php");
+require_once("../config/db.php");
+include("../views/layout/header.php");
+?>
+
 
 <?php if (isset($preciosGlobal)) : ?>
 <script>
@@ -92,9 +97,10 @@
 
             <!-- Ocupación -->
             <label>Ocupación</label>
-            <div class="ocupacion-box">
+
+            <div class="ocupacion-row">
                 <label class="radio-option">
-                    <input type="radio" name="ocupacion" value="sencilla" checked>
+                    <input type="radio" name="ocupacion" value="sencilla">
                     <span>Sencilla</span>
                 </label>
 
@@ -103,6 +109,7 @@
                     <span>Doble</span>
                 </label>
             </div>
+
 
             <!-- Fechas -->
             <label>Fecha check-in</label>
