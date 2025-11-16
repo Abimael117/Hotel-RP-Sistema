@@ -4,7 +4,6 @@ require_once("../config/db.php");
 include("../views/layout/header.php");
 ?>
 
-
 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
     <h1>Habitaciones</h1>
     <button class="btn-add" onclick="openModal()">Añadir Habitación</button>
@@ -40,6 +39,14 @@ include("../views/layout/header.php");
                         Marcar para Mantenimiento
                     </button>
 
+                    <button onclick="cambiarEstado(<?= $hab['id'] ?>, 'ocupado')">
+                        Marcar como Ocupado
+                    </button>
+
+                    <button onclick="cambiarEstado(<?= $hab['id'] ?>, 'reservado')">
+                        Marcar como Reservado
+                    </button>
+
                     <button class="menu-delete" onclick="eliminarHabitacion(<?= $hab['id'] ?>)">
                         Eliminar
                     </button>
@@ -47,7 +54,7 @@ include("../views/layout/header.php");
             </div>
         </div>
 
-        <!-- Estado -->
+        <!-- Estado visual -->
         <span class="badge <?= strtolower($hab['estado']); ?>">
             <?= ucfirst($hab['estado']); ?>
         </span>
@@ -68,7 +75,6 @@ include("../views/layout/header.php");
         </p>
 
     </div>
-
 <?php endforeach; ?>
 </div>
 
@@ -100,9 +106,11 @@ include("../views/layout/header.php");
 
             <label>Estado</label>
             <select name="estado" required>
-                <option value="Disponible">Disponible</option>
-                <option value="Ocupada">Ocupada</option>
-                <option value="Mantenimiento">Mantenimiento</option>
+                <option value="disponible">Disponible</option>
+                <option value="ocupado">Ocupado</option>
+                <option value="reservado">Reservado</option>
+                <option value="limpieza">Limpieza</option>
+                <option value="mantenimiento">Mantenimiento</option>
             </select>
 
             <div class="modal-buttons">
@@ -112,7 +120,6 @@ include("../views/layout/header.php");
         </form>
     </div>
 </div>
-
 
 <!-- ================================
      MODAL OPEN/CLOSE
@@ -125,7 +132,6 @@ function closeModal() {
     document.getElementById('modalAdd').style.display = 'none';
 }
 </script>
-
 
 <!-- ================================
      AJAX: Guardar habitación
@@ -165,7 +171,6 @@ document.getElementById("formAdd").addEventListener("submit", async function (e)
 });
 </script>
 
-
 <!-- ================================
      AGREGAR HABITACIÓN AL GRID
 ================================ -->
@@ -199,9 +204,8 @@ function agregarHabitacionAlGrid(h) {
 }
 </script>
 
-
 <!-- ================================
-     TOAST BONITO
+     TOAST
 ================================ -->
 <script>
 function showToast(msg, error = false) {
@@ -220,7 +224,7 @@ function showToast(msg, error = false) {
 </script>
 
 <!-- ================================
-     MENÚ DE LOS TRES PUNTOS (...) 
+     MENÚ DE TRES PUNTOS (...)
 ================================ -->
 <script>
 document.addEventListener("click", function(e) {
@@ -240,5 +244,36 @@ document.addEventListener("click", function(e) {
     menu.classList.toggle("show");
 });
 </script>
+
+<!-- ================================
+     FUNCIONES DE ACCIONES (NUEVO)
+================================ -->
+<script>
+
+// =============================
+// CAMBIAR ESTADO
+// =============================
+function cambiarEstado(id, nuevo) {
+    window.location.href = `../controllers/habitaciones.php?accion=estado&id=${id}&valor=${nuevo}`;
+}
+
+// =============================
+// ELIMINAR HABITACIÓN
+// =============================
+function eliminarHabitacion(id) {
+    if (!confirm("¿Seguro que deseas eliminar esta habitación?")) return;
+
+    window.location.href = `../controllers/habitaciones.php?accion=eliminar&id=${id}`;
+}
+
+// =============================
+// EDITAR (se implementa después)
+// =============================
+function editarHabitacion(id) {
+    alert("La edición la agregamos en el siguiente módulo 😎");
+}
+
+</script>
+
 
 <?php include("../views/layout/footer.php"); ?>
