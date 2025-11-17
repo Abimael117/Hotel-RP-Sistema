@@ -17,8 +17,9 @@ $user = $_SESSION['user'] ?? null;
     <link rel="stylesheet" href="/Hotel-RP/public/assets/css/habitaciones.css">
     <?php endif; ?>
 
-    <link rel="stylesheet" href="/Hotel-RP/public/assets/css/reservas.css">
+   
     <link rel="stylesheet" href="/Hotel-RP/public/assets/css/usuarios.css">
+    <link rel="stylesheet" href="/Hotel-RP/public/assets/css/reservas.css">
 
 
 

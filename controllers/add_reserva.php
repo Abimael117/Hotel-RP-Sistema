@@ -12,18 +12,28 @@ require_once("../config/db.php");
 // =============================
 // RECIBIR DATOS DEL FORM
 // =============================
-$huesped_id     = intval($_POST["huesped_id"]);
-$habitacion_id  = intval($_POST["habitacion_id"]);
-$fecha_in       = $_POST["fecha_check_in"];
-$fecha_out      = $_POST["fecha_check_out"];
-$ocupacion      = $_POST["ocupacion"]; // 'sencilla' o 'doble'
-$personas_extra = isset($_POST["personas_extra"]) ? intval($_POST["personas_extra"]) : 0;
-$metodo_pago    = $_POST["metodo_pago"];
+$huesped_id     = intval($_POST["huesped_id"] ?? 0);
+$habitacion_id  = intval($_POST["habitacion_id"] ?? 0);
+$fecha_in       = $_POST["fecha_check_in"] ?? "";
+$fecha_out      = $_POST["fecha_check_out"] ?? "";
+$ocupacion      = $_POST["ocupacion"] ?? ""; 
+$personas_extra = isset($_POST["personas_extra"]) ? max(0, intval($_POST["personas_extra"])) : 0;
+$metodo_pago    = $_POST["metodo_pago"] ?? "";
+
+// NUEVO: Se recibe el descuento
+$descuento10    = isset($_POST["descuento10"]) ? 1 : 0; // 1 = aplica, 0 = no aplica
+
+// Validar ocupación
+$ocupacionesPermitidas = ["sencilla", "doble"];
+if (!in_array($ocupacion, $ocupacionesPermitidas, true)) {
+    echo json_encode(["success" => false, "message" => "Ocupación inválida"]);
+    exit;
+}
 
 // =============================
 // VALIDAR FECHAS
 // =============================
-if ($fecha_in >= $fecha_out) {
+if (!$fecha_in || !$fecha_out || $fecha_in >= $fecha_out) {
     echo json_encode(["success" => false, "message" => "Rango de fechas inválido"]);
     exit;
 }
@@ -63,8 +73,8 @@ if (!$resPrecio) {
     exit;
 }
 
-$tipo_id      = intval($resPrecio["tipo_id"]);
-$precio_base  = floatval($resPrecio["precio_noche"]);
+$tipo_id     = intval($resPrecio["tipo_id"]);
+$precio_base = floatval($resPrecio["precio_noche"]);
 
 // =============================
 // INTENTAR OBTENER PRECIO POR TIPO/OCUPACIÓN
@@ -76,11 +86,7 @@ $stmtTP->execute();
 $resTP = $stmtTP->get_result()->fetch_assoc();
 $stmtTP->close();
 
-if ($resTP) {
-    $precio_noche = floatval($resTP["precio"]);
-} else {
-    $precio_noche = $precio_base; // fallback
-}
+$precio_noche = $resTP ? floatval($resTP["precio"]) : $precio_base;
 
 // =============================
 // CALCULAR TOTAL
@@ -95,29 +101,32 @@ if ($noches <= 0) {
     exit;
 }
 
-// Personas incluidas según ocupación
 $incluidas = ($ocupacion === "sencilla") ? 1 : 2;
-
-// Total huéspedes
 $numero_huesp = $incluidas + $personas_extra;
-
-// Extra por persona extra (100 por persona por noche)
 $costo_extra = $personas_extra * 100 * $noches;
 
-// Total final
-$total = ($noches * $precio_noche) + $costo_extra;
+$subtotal = ($noches * $precio_noche) + $costo_extra;
+
+// =============================
+// APLICAR DESCUENTO SI SE PIDIÓ
+// =============================
+$total = $subtotal;
+
+if ($descuento10 === 1) {
+    $total = $subtotal * 0.90; // aplica 10%
+}
 
 // =============================
 // INSERTAR RESERVA
 // =============================
 $sqlInsert = "INSERT INTO reservas
               (huesped_id, habitacion_id, fecha_check_in, fecha_check_out,
-               numero_huespedes, personas_extra, estado, total, metodo_pago)
-              VALUES (?, ?, ?, ?, ?, ?, 'Activa', ?, ?)";
+               numero_huespedes, personas_extra, estado, total, metodo_pago, descuento_aplicado)
+              VALUES (?, ?, ?, ?, ?, ?, 'Activa', ?, ?, ?)";
 
 $stmt = $conn->prepare($sqlInsert);
 $stmt->bind_param(
-    "iissiids",
+    "iissiidsi",
     $huesped_id,
     $habitacion_id,
     $fecha_in,
@@ -125,12 +134,29 @@ $stmt->bind_param(
     $numero_huesp,
     $personas_extra,
     $total,
-    $metodo_pago
+    $metodo_pago,
+    $descuento10
 );
 
 if ($stmt->execute()) {
     $idNew = $stmt->insert_id;
     $stmt->close();
+
+    // =============================
+    // ACTUALIZAR ESTADO DE HABITACIÓN
+    // =============================
+    $hoy = date("Y-m-d");
+
+    if ($fecha_in == $hoy) {
+        $sqlEstado = "UPDATE habitaciones SET estado='ocupado' WHERE id=?";
+    } else {
+        $sqlEstado = "UPDATE habitaciones SET estado='reservado' WHERE id=?";
+    }
+
+    $stmtEstado = $conn->prepare($sqlEstado);
+    $stmtEstado->bind_param("i", $habitacion_id);
+    $stmtEstado->execute();
+    $stmtEstado->close();
 
     // =============================
     // OBTENER RESERVA COMPLETA
@@ -157,3 +183,4 @@ if ($stmt->execute()) {
 } else {
     echo json_encode(["success" => false, "message" => "Error al guardar"]);
 }
+?>
