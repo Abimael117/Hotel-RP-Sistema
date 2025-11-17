@@ -1,5 +1,5 @@
 <?php
-require_once("../config/auth_middleware.php"); // <-- NUEVO
+require_once("../config/auth_middleware.php");
 require_once("../config/db.php");
 
 // Obtener reservas activas
@@ -8,9 +8,11 @@ $sql = "SELECT
             r.fecha_check_in,
             r.fecha_check_out,
             h.numero AS habitacion_numero,
-            hu.nombre_completo AS huesped_nombre
+            hu.nombre_completo AS huesped_nombre,
+            r.metodo_pago,
+            r.estado
         FROM reservas r
-        JOIN habitaciones h ON r.habitacion_id = h.numero
+        JOIN habitaciones h ON r.habitacion_id = h.id
         JOIN huespedes hu ON r.huesped_id = hu.id
         WHERE r.estado = 'Activa'";
 
@@ -22,13 +24,13 @@ include("../views/layout/header.php");
 <h1>Calendario de Reservas</h1>
 <p class="page-description">Visualiza todas las reservas por fecha.</p>
 
-<link rel="stylesheet" href="assets/css/calendario.css">
+<link rel="stylesheet" href="../public/assets/css/calendario.css">
 
 <div id="calendar"></div>
 
 <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js"></script>
 
-<!-- Pasamos reservas al JS -->
+<!-- Pasar reservas al JS -->
 <script>
 window.reservasCalendario = <?= json_encode($reservas); ?>;
 </script>
@@ -49,18 +51,20 @@ document.addEventListener("DOMContentLoaded", function () {
             right: ''
         },
 
-        // Mostrar reservas dentro del calendario
+        // Mostrar eventos (bloques en el calendario)
         events: [
             <?php foreach ($reservas as $r): ?>
             {
-                title: "<?= addslashes($r['huesped_nombre']); ?>\nHab. <?= $r['habitacion_numero']; ?>",
+                title: "<?= addslashes($r['huesped_nombre']); ?> (Hab. <?= $r['habitacion_numero']; ?>)",
                 start: "<?= $r['fecha_check_in']; ?>",
-                end: "<?= date('Y-m-d', strtotime($r['fecha_check_out'].' +1 day')); ?>"
+                end: "<?= date('Y-m-d', strtotime($r['fecha_check_out'].' +1 day')); ?>",
+                color: "#4F46E5",
+                textColor: "#fff"
             },
             <?php endforeach; ?>
         ],
 
-        // ⭐ MARCAR DIAS CON RESERVAS
+        // ⭐ MARCAR DÍAS CON RESERVAS
         dateDidMount(info) {
             const fecha = info.date.toISOString().split("T")[0];
 
@@ -78,7 +82,6 @@ document.addEventListener("DOMContentLoaded", function () {
     calendar.render();
 });
 
-
 // ==========================================
 // MODAL
 // ==========================================
@@ -93,8 +96,11 @@ function abrirModalDia(fecha, reservas) {
     reservas.forEach(r => {
         cont.innerHTML += `
             <div class="reserva-item">
-                <strong>Hab. ${r.habitacion_numero}</strong><br>
-                ${r.huesped_nombre}
+                <strong>Habitación ${r.habitacion_numero}</strong><br>
+                Huésped: ${r.huesped_nombre}<br>
+                Pago: ${r.metodo_pago}<br>
+                Estado: ${r.estado}<br>
+                <small>${r.fecha_check_in} → ${r.fecha_check_out}</small>
             </div>
         `;
     });
@@ -106,7 +112,6 @@ function cerrarModalDia() {
     document.getElementById("modalDia").style.display = "none";
 }
 </script>
-
 
 <!-- MODAL -->
 <div id="modalDia" class="modal-dia" style="display:none;">
