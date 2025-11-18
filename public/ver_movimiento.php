@@ -57,7 +57,7 @@
             <h3>Pago</h3>
             <p><strong>Total:</strong> $<?= number_format($mov['total'], 2) ?></p>
             <p><strong>Método de pago:</strong> <?= htmlspecialchars($mov['metodo_pago']) ?></p>
-            <p><strong>Descuento aplicado:</strong> $<?= number_format($mov['descuento_aplicado'], 2) ?></p>
+            <p><strong>Descuento aplicado:</strong> <?= number_format($mov['descuento_aplicado'], 2) ?>%</p>
         </div>
 
     </div>

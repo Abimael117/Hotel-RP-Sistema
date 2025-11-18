@@ -9,29 +9,32 @@ $movModel = new Movimiento($conn);
 $habModel = new Habitacion($conn);
 
 // ===========================================================
-// SI NO ES POST → MOSTRAR FORMULARIO
+// SI EL FORMULARIO AÚN NO SE ENVÍA → SOLO MOSTRAR FORMULARIO
 // ===========================================================
 if ($_SERVER["REQUEST_METHOD"] !== "POST") {
 
-    // Habitaciones disponibles (en cualquier estado excepto 'ocupado')
-    $habitaciones = $habModel->obtenerTodas(); // Reserva puede ser con habitación disponible, limpieza, mantenimiento, reservada (manual), fuera de servicio
+    // Habitaciones
+    $habitaciones = $habModel->obtenerTodas();
 
-    // Obtener huéspedes
+    // Huespedes
     $sql = "SELECT * FROM huespedes ORDER BY nombre_completo ASC";
     $res = $conn->query($sql);
     $huespedes = $res->fetch_all(MYSQLI_ASSOC);
+
+    // Tipos de precios (para ocupación)
+    $precios = $conn->query("SELECT * FROM tipos_precios")->fetch_all(MYSQLI_ASSOC);
 
     include("../public/form_reserva.php");
     exit;
 }
 
 // ===========================================================
-// SI ES POST → PROCESAR RESERVA
+// PROCESAR FORMULARIO ENVIADO
 // ===========================================================
 
 $habitacionId   = intval($_POST["habitacion_id"]);
 $huespedId      = intval($_POST["huesped_id"]);
-$fechaCheckIn   = $_POST["fecha_check_in"];    // FUTURA
+$fechaCheckIn   = $_POST["fecha_check_in"];
 $fechaCheckOut  = $_POST["fecha_check_out"];
 $numHuespedes   = intval($_POST["numero_huespedes"]);
 $personasExtra  = intval($_POST["personas_extra"]);
@@ -39,22 +42,20 @@ $total          = floatval($_POST["total"]);
 $metodoPago     = $_POST["metodo_pago"];
 $descuento      = floatval($_POST["descuento_aplicado"] ?? 0);
 
-// Validaciones simples
 $errores = [];
 
 if (!$habitacionId) $errores[] = "Debes elegir una habitación.";
 if (!$huespedId) $errores[] = "Debes elegir un huésped.";
-if (!$fechaCheckIn || !$fechaCheckOut) $errores[] = "Debes elegir fechas.";
-if ($fechaCheckIn <= date('Y-m-d')) $errores[] = "El check-in debe ser una fecha futura.";
-if ($fechaCheckOut <= $fechaCheckIn) $errores[] = "El check-out debe ser mayor al check-in.";
+if (!$fechaCheckOut) $errores[] = "Debes seleccionar una fecha de salida.";
+if ($fechaCheckOut <= $fechaCheckIn) $errores[] = "La fecha de salida debe ser mayor al día de hoy.";
 
 if (!empty($errores)) {
-
     $habitaciones = $habModel->obtenerTodas();
 
     $sql = "SELECT * FROM huespedes ORDER BY nombre_completo ASC";
-    $res = $conn->query($sql);
-    $huespedes = $res->fetch_all(MYSQLI_ASSOC);
+    $huespedes = $conn->query($sql)->fetch_all(MYSQLI_ASSOC);
+
+    $precios = $conn->query("SELECT * FROM tipos_precios")->fetch_all(MYSQLI_ASSOC);
 
     include("../public/form_reserva.php");
     exit;

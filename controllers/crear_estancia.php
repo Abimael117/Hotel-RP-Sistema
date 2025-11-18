@@ -9,29 +9,32 @@ $movModel = new Movimiento($conn);
 $habModel = new Habitacion($conn);
 
 // ===========================================================
-// SI EL FORMULARIO AÚN NO SE ENVÍA → SOLO MOSTRAR VISTA
+// SI EL FORMULARIO AÚN NO SE ENVÍA → SOLO MOSTRAR FORMULARIO
 // ===========================================================
 if ($_SERVER["REQUEST_METHOD"] !== "POST") {
 
-    // Obtener habitaciones disponibles (no ocupadas)
+    // Habitaciones
     $habitaciones = $habModel->obtenerTodas();
 
-    // Obtener huéspedes
+    // Huespedes
     $sql = "SELECT * FROM huespedes ORDER BY nombre_completo ASC";
     $res = $conn->query($sql);
     $huespedes = $res->fetch_all(MYSQLI_ASSOC);
+
+    // Tipos de precios (para ocupación)
+    $precios = $conn->query("SELECT * FROM tipos_precios")->fetch_all(MYSQLI_ASSOC);
 
     include("../public/form_estancia.php");
     exit;
 }
 
 // ===========================================================
-// SI SE ENVÍA EL FORMULARIO (POST) → PROCESAR CREACIÓN
+// PROCESAR FORMULARIO ENVIADO
 // ===========================================================
 
 $habitacionId   = intval($_POST["habitacion_id"]);
 $huespedId      = intval($_POST["huesped_id"]);
-$fechaCheckIn   = $_POST["fecha_check_in"];   // HOY
+$fechaCheckIn   = $_POST["fecha_check_in"];
 $fechaCheckOut  = $_POST["fecha_check_out"];
 $numHuespedes   = intval($_POST["numero_huespedes"]);
 $personasExtra  = intval($_POST["personas_extra"]);
@@ -39,26 +42,26 @@ $total          = floatval($_POST["total"]);
 $metodoPago     = $_POST["metodo_pago"];
 $descuento      = floatval($_POST["descuento_aplicado"] ?? 0);
 
-// Validaciones básicas
 $errores = [];
 
 if (!$habitacionId) $errores[] = "Debes elegir una habitación.";
 if (!$huespedId) $errores[] = "Debes elegir un huésped.";
 if (!$fechaCheckOut) $errores[] = "Debes seleccionar una fecha de salida.";
-if ($fechaCheckOut <= $fechaCheckIn) $errores[] = "La fecha de salida debe ser mayor a hoy.";
+if ($fechaCheckOut <= $fechaCheckIn) $errores[] = "La fecha de salida debe ser mayor al día de hoy.";
 
 if (!empty($errores)) {
-    $habitaciones = $habModel->obtenerHabitacionesDisponibles();
+    $habitaciones = $habModel->obtenerTodas();
 
     $sql = "SELECT * FROM huespedes ORDER BY nombre_completo ASC";
-    $res = $conn->query($sql);
-    $huespedes = $res->fetch_all(MYSQLI_ASSOC);
+    $huespedes = $conn->query($sql)->fetch_all(MYSQLI_ASSOC);
+
+    $precios = $conn->query("SELECT * FROM tipos_precios")->fetch_all(MYSQLI_ASSOC);
 
     include("../public/form_estancia.php");
     exit;
 }
 
-// Datos estructurados
+// Datos para modelo
 $data = [
     "habitacion_id"     => $habitacionId,
     "huesped_id"        => $huespedId,
@@ -72,19 +75,15 @@ $data = [
 ];
 
 $error = null;
-
-// Intentar crear estancia
 $estanciaId = $movModel->crearEstancia($data, $error);
 
 if (!$estanciaId) {
 
     $errores[] = $error;
 
-    $habitaciones = $habModel->obtenerHabitacionesDisponibles();
-
-    $sql = "SELECT * FROM huespedes ORDER BY nombre_completo ASC";
-    $res = $conn->query($sql);
-    $huespedes = $res->fetch_all(MYSQLI_ASSOC);
+    $habitaciones = $habModel->obtenerTodas();
+    $huespedes = $conn->query("SELECT * FROM huespedes ORDER BY nombre_completo ASC")->fetch_all(MYSQLI_ASSOC);
+    $precios = $conn->query("SELECT * FROM tipos_precios")->fetch_all(MYSQLI_ASSOC);
 
     include("../public/form_estancia.php");
     exit;
@@ -93,3 +92,4 @@ if (!$estanciaId) {
 // Todo bien → redirigir
 header("Location: movimientos.php?msg=estancia_creada");
 exit;
+

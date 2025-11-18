@@ -8,7 +8,6 @@
     <h1 class="titulo-modulo">Nueva Estancia</h1>
     <p class="descripcion-modulo">Registrar una estancia inmediata.</p>
 
-    <!-- Mostrar errores -->
     <?php if (!empty($errores)): ?>
         <div class="alerta-error">
             <ul>
@@ -26,16 +25,25 @@
             <!-- HABITACIÓN -->
             <div class="form-group">
                 <label>Habitación</label>
-                <select name="habitacion_id" required>
+                <select name="habitacion_id" id="habitacion" required>
                     <option value="">Seleccionar habitación…</option>
 
                     <?php foreach ($habitaciones as $hab): ?>
-                        <option value="<?= $hab['id'] ?>">
+                        <option 
+                            value="<?= $hab['id'] ?>" 
+                            data-tipo="<?= $hab['tipo_id'] ?>"
+                        >
                             <?= "Habitación " . $hab['numero'] . " (" . $hab['estado'] . ")" ?>
                         </option>
                     <?php endforeach; ?>
 
                 </select>
+            </div>
+
+            <!-- OCUPACIÓN DINÁMICA -->
+            <div class="form-group" id="div-ocupacion" style="display:none;">
+                <label>Tipo de ocupación</label>
+                <select id="ocupacion"></select>
             </div>
 
             <!-- HUESPED -->
@@ -75,12 +83,6 @@
                 >
             </div>
 
-            <!-- NUM HUESPEDES -->
-            <div class="form-group">
-                <label>Número de huéspedes</label>
-                <input type="number" name="numero_huespedes" min="1" value="1" required>
-            </div>
-
             <!-- PERSONAS EXTRA -->
             <div class="form-group">
                 <label>Personas extra</label>
@@ -90,7 +92,7 @@
             <!-- TOTAL -->
             <div class="form-group">
                 <label>Total ($)</label>
-                <input type="number" step="0.01" name="total" min="0" value="0" required>
+                <input type="number" step="0.01" name="total" id="total" min="0" value="0" required>
             </div>
 
             <!-- MÉTODO DE PAGO -->
@@ -106,7 +108,7 @@
 
             <!-- DESCUENTO -->
             <div class="form-group">
-                <label>Descuento aplicado</label>
+                <label>Descuento aplicado (%)</label>
                 <input type="number" step="0.01" name="descuento_aplicado" min="0" value="0">
             </div>
 
@@ -121,3 +123,90 @@
 </div>
 
 <?php include("../views/layout/footer.php"); ?>
+
+<!-- ============================================
+     SCRIPT: PRECIOS, OCUPACIONES Y DESCUENTO
+============================================ -->
+<script>
+const precios = <?= json_encode($precios); ?>;
+
+const habitacionSel = document.getElementById("habitacion");
+const ocupacionSel  = document.getElementById("ocupacion");
+const personasExtra = document.getElementsByName("personas_extra")[0];
+const descuentoInput = document.getElementsByName("descuento_aplicado")[0];
+const totalInput    = document.getElementById("total");
+const divOcupacion  = document.getElementById("div-ocupacion");
+
+let precioBaseGlobal = 0;
+
+// =========================================
+// ACTUALIZAR PRECIO BASE
+// =========================================
+function actualizarPrecio() {
+    const habitacion = habitacionSel.options[habitacionSel.selectedIndex];
+    if (!habitacion) return;
+
+    const tipoId = habitacion.getAttribute("data-tipo");
+    const preciosTipo = precios.filter(p => p.tipo_id == tipoId);
+
+    if (preciosTipo.length === 0) return;
+
+    let precioBase = 0;
+
+    // SOLO UNA TARIFA
+    if (preciosTipo.length === 1) {
+        precioBase = parseFloat(preciosTipo[0].precio);
+        divOcupacion.style.display = "none";
+
+    } else {
+        // VARIAS TARIFAS → MOSTRAR SELECT
+        divOcupacion.style.display = "block";
+        ocupacionSel.innerHTML = "";
+
+        preciosTipo.forEach(p => {
+            const opt = document.createElement("option");
+            opt.value = p.precio;
+            opt.dataset.precio = p.precio;
+            opt.textContent = `${p.ocupacion} ($${p.precio})`;
+            ocupacionSel.appendChild(opt);
+        });
+
+        precioBase = parseFloat(ocupacionSel.options[0].dataset.precio);
+    }
+
+    // PERSONAS EXTRA
+    let total = precioBase;
+    const extra = parseInt(personasExtra.value) || 0;
+    total += extra * 100;
+
+    precioBaseGlobal = total;   // Guardamos precio antes de descuento
+
+    aplicarDescuento();
+}
+
+// =========================================
+// APLICAR DESCUENTO (%)
+// =========================================
+function aplicarDescuento() {
+    const desc = parseFloat(descuentoInput.value) || 0;
+
+    if (desc <= 0) {
+        totalInput.value = precioBaseGlobal.toFixed(2);
+        return;
+    }
+
+    const totalFinal = precioBaseGlobal - (precioBaseGlobal * (desc / 100));
+    totalInput.value = totalFinal.toFixed(2);
+}
+
+// =========================================
+// EVENTOS
+// =========================================
+habitacionSel.addEventListener("change", actualizarPrecio);
+ocupacionSel.addEventListener("change", actualizarPrecio);
+personasExtra.addEventListener("input", actualizarPrecio);
+descuentoInput.addEventListener("input", aplicarDescuento);
+
+// Calcular al cargar
+actualizarPrecio();
+</script>

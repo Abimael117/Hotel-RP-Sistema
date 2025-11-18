@@ -17,8 +17,15 @@ $ingresos = $conn->query("
 
 // Total de reservas
 $totalReservas = $conn->query("
-    SELECT COUNT(*) AS total FROM reservas
+    SELECT COUNT(*) AS total
+    FROM reservas
+    WHERE tipo_ocupacion = 'Reserva'
+      AND MONTH(fecha_check_in) = MONTH(CURDATE())
+      AND YEAR(fecha_check_in) = YEAR(CURDATE())
 ")->fetch_assoc()['total'];
+
+
+
 
 // Total habitaciones
 $habitacionesTotales = $conn->query("
@@ -77,7 +84,7 @@ include("../views/layout/header.php");
     </div>
 
     <div class="card-metric">
-        <p class="metric-title">Reservas</p>
+        <p class="metric-title">Reservas Mes Actual</p>
         <h2 class="metric-value"><?= $totalReservas; ?></h2>
     </div>
 
