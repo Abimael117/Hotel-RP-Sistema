@@ -50,16 +50,36 @@
             <!-- HUESPED -->
             <div class="form-group">
                 <label>Huésped</label>
-                <select name="huesped_id" required>
-                    <option value="">Seleccionar huésped…</option>
 
-                    <?php foreach ($huespedes as $hu): ?>
-                        <option value="<?= $hu['id'] ?>">
-                            <?= $hu['nombre_completo'] ?>
-                        </option>
-                    <?php endforeach; ?>
+                <div style="display:flex; gap:10px; align-items:center;">
 
-                </select>
+                    <select name="huesped_id" required class="select-input">
+                        <option value="">Seleccionar huésped…</option>
+
+                        <?php foreach ($huespedes as $hu): ?>
+                            <option value="<?= $hu['id'] ?>">
+                                <?= $hu['nombre_completo'] ?>
+                            </option>
+                        <?php endforeach; ?>
+                    </select>
+
+                    <a href="../controllers/crear_huesped.php"
+                    onclick="window.open(this.href, 'nuevoHuesped', 'width=520,height=600'); return false;"
+                    class="btn-nuevo-huesped"
+                    style="
+                            background:#3498db;
+                            color:white;
+                            padding:6px 12px;
+                            border-radius:6px;
+                            text-decoration:none;
+                            font-size:14px;
+                            font-weight:500;
+                            cursor:pointer;
+                    ">
+                        + Nuevo
+                    </a>
+
+                </div>
             </div>
 
             <!-- CHECK-IN FUTURO -->
