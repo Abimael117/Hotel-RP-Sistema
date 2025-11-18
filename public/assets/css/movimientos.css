@@ -244,3 +244,61 @@
 .detalle-section h3 {
     margin-bottom: 5px;
 }
+
+
+/* Contenedor de las acciones */
+.td-acciones {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+}
+
+/* Estilo general para todos los botones */
+.accion-btn {
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 13px;
+    text-decoration: none;
+    color: #fff;
+    cursor: pointer;
+    transition: .2s;
+    display: inline-block;
+}
+
+/* Estilo por tipo */
+.accion-activar {
+    background-color: #2ecc71;
+}
+.accion-activar:hover {
+    background-color: #27ae60;
+}
+
+.accion-finalizar {
+    background-color: #e74c3c;
+}
+.accion-finalizar:hover {
+    background-color: #c0392b;
+}
+
+.accion-ver {
+    background-color: #4a6cf7;
+}
+.accion-ver:hover {
+    background-color: #2f54e4;
+}
+
+.accion-editar {
+    background-color: #f1c40f;
+    color: #000;
+}
+.accion-editar:hover {
+    background-color: #d4ac0d;
+    color: #000;
+}
+
+.accion-eliminar {
+    background-color: #8e44ad;
+}
+.accion-eliminar:hover {
+    background-color: #6c3483;
+}

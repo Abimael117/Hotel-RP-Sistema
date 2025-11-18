@@ -119,22 +119,28 @@ include("../views/layout/header.php");
                                 $<?= number_format($mov['total'], 2) ?>
                             </td>
 
-                            <td>
+                            <td class="td-acciones">
 
-                                <!-- Acciones dinámicas según tipo y estado -->
                                 <?php if ($mov['tipo_ocupacion'] === "Reserva" && $mov['estado'] === "Reservada") : ?>
-                                    <a href="activar_reserva.php?id=<?= $mov['id'] ?>" class="accion-btn activar">
+                                    <a href="activar_reserva.php?id=<?= $mov['id'] ?>" class="accion-btn accion-activar">
                                         Activar
+                                    </a>
+                                    <a href="editar_reserva.php?id=<?= $mov['id'] ?>" class="accion-btn accion-editar">
+                                        Editar
+                                    </a>
+                                    <a href="cancelar_reserva.php?id=<?= $mov['id'] ?>" class="accion-btn accion-eliminar">
+                                        Eliminar
                                     </a>
                                 <?php endif; ?>
 
-                                <?php if ($mov['tipo_ocupacion'] === "Estancia" && $mov['estado'] === "Activa") : ?>
-                                    <a href="finalizar_estancia.php?id=<?= $mov['id'] ?>" class="accion-btn finalizar">
+                                <?php if ($mov['estado'] === "Activa") : ?>
+                                    <a href="finalizar_estancia.php?id=<?= $mov['id'] ?>" class="accion-btn accion-finalizar">
                                         Finalizar
                                     </a>
                                 <?php endif; ?>
 
-                                <a href="ver_movimiento.php?id=<?= $mov['id'] ?>" class="accion-btn ver">
+
+                                <a href="ver_movimiento.php?id=<?= $mov['id'] ?>" class="accion-btn accion-ver">
                                     Ver
                                 </a>
 

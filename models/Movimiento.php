@@ -1,30 +1,6 @@
 <?php
 // models/Movimiento.php
 
-// Este modelo maneja TODOS los movimientos de ocupación del hotel:
-// - Estancias (renta inmediata)
-// - Reservas futuras
-// Usando la tabla `reservas` como tabla de movimientos.
-
-// Estructura mínima esperada de la tabla `reservas`:
-//
-//  id                INT PK AI
-//  huesped_id        INT
-//  habitacion_id     INT
-//  fecha_check_in    DATE
-//  fecha_check_out   DATE
-//  numero_huespedes  INT
-//  personas_extra    INT
-//  estado            VARCHAR(20)  -- Activa | Reservada | Finalizada | Cancelada
-//  total             DECIMAL(10,2)
-//  metodo_pago       VARCHAR(50)
-//  tipo_ocupacion    VARCHAR(20)  -- Estancia | Reserva
-//  fecha_creacion    DATETIME
-//  descuento_aplicado DECIMAL(10,2)
-//
-// NOTA: `estado` lo usamos como "estado_movimiento"
-//       `tipo_ocupacion` lo usamos como "tipo_movimiento"
-
 class Movimiento
 {
     private $conn;
@@ -38,15 +14,6 @@ class Movimiento
     // ============================================================
     // 1) VALIDAR DISPONIBILIDAD (EVITAR DOBLE RESERVA)
     // ============================================================
-    //
-    // Revisa si hay algún movimiento (Estancia o Reserva) para
-    // la misma habitación y con fechas traslapadas.
-    //
-    // Ignora movimientos en estado: Finalizada o Cancelada
-    //
-    // $ignorarId se usa cuando actualizas un movimiento existente,
-    // para no chocarte contigo mismo.
-    //
     public function hayTraslape($habitacionId, $fechaInicio, $fechaFin, $ignorarId = null)
     {
         $sql = "
@@ -55,9 +22,9 @@ class Movimiento
             WHERE habitacion_id = ?
               AND estado IN ('Activa', 'Reservada')
               AND (
-                    (fecha_check_in < ? AND fecha_check_out > ?)  -- traslape interno
-                 OR (fecha_check_in >= ? AND fecha_check_in < ?)   -- empieza dentro del rango
-                 OR (fecha_check_out > ? AND fecha_check_out <= ?) -- termina dentro del rango
+                    (fecha_check_in < ? AND fecha_check_out > ?)
+                 OR (fecha_check_in >= ? AND fecha_check_in < ?)
+                 OR (fecha_check_out > ? AND fecha_check_out <= ?)
               )
         ";
 
@@ -66,6 +33,7 @@ class Movimiento
         }
 
         $stmt = $this->conn->prepare($sql);
+
         if ($ignorarId !== null) {
             $stmt->bind_param(
                 "isssssii",
@@ -99,19 +67,13 @@ class Movimiento
     }
 
     // ============================================================
-    // 2) CREAR ESTANCIA (Renta inmediata - hoy)
+    // 2) CREAR ESTANCIA (INMEDIATA)
     // ============================================================
-    //
-    // Reglas:
-    // - tipo_ocupacion = 'Estancia'
-    // - estado = 'Activa'
-    // - Sí cambia automáticamente la habitación a 'ocupado'
-    //
     public function crearEstancia($data, &$error = null)
     {
         $habitacionId   = $data['habitacion_id'];
         $huespedId      = $data['huesped_id'];
-        $fechaCheckIn   = $data['fecha_check_in'];   // normalmente HOY
+        $fechaCheckIn   = $data['fecha_check_in'];
         $fechaCheckOut  = $data['fecha_check_out'];
         $numHuespedes   = $data['numero_huespedes'] ?? 1;
         $personasExtra  = $data['personas_extra'] ?? 0;
@@ -119,7 +81,6 @@ class Movimiento
         $metodoPago     = $data['metodo_pago'] ?? null;
         $descuento      = $data['descuento_aplicado'] ?? 0;
 
-        // Validar traslapes
         if ($this->hayTraslape($habitacionId, $fechaCheckIn, $fechaCheckOut)) {
             $error = "La habitación ya está reservada/ocupada en ese rango de fechas.";
             return false;
@@ -156,59 +117,55 @@ class Movimiento
         $nuevoId = $stmt->insert_id;
         $stmt->close();
 
-        // Acción automática #1: poner habitación en 'ocupado'
+        // Acción automática: habitación ocupada
         $this->cambiarEstadoHabitacion($habitacionId, 'ocupado');
 
         return $nuevoId;
     }
 
     // ============================================================
-    // 3) CREAR RESERVA FUTURA
+    // 3) CREAR RESERVA FUTURA (CORRECTO Y ALINEADO)
     // ============================================================
-    //
-    // Reglas:
-    // - tipo_ocupacion = 'Reserva'
-    // - estado = 'Reservada'
-    // - NO toca el estado de la habitación
-    //
     public function crearReserva($data, &$error = null)
     {
-        $habitacionId   = $data['habitacion_id'];
-        $huespedId      = $data['huesped_id'];
-        $fechaCheckIn   = $data['fecha_check_in'];   // futura
-        $fechaCheckOut  = $data['fecha_check_out'];
-        $numHuespedes   = $data['numero_huespedes'] ?? 1;
-        $personasExtra  = $data['personas_extra'] ?? 0;
-        $total          = $data['total'] ?? 0;
-        $metodoPago     = $data['metodo_pago'] ?? null;
-        $descuento      = $data['descuento_aplicado'] ?? 0;
-
-        // Validar traslapes
-        if ($this->hayTraslape($habitacionId, $fechaCheckIn, $fechaCheckOut)) {
-            $error = "La habitación ya está reservada/ocupada en ese rango de fechas.";
-            return false;
-        }
-
         $sql = "
             INSERT INTO {$this->table}
-            (huesped_id, habitacion_id, fecha_check_in, fecha_check_out,
-             numero_huespedes, personas_extra, estado, total, metodo_pago,
-             tipo_ocupacion, fecha_creacion, descuento_aplicado)
-            VALUES (?, ?, ?, ?, ?, ?, 'Reservada', ?, ?, 'Reserva', NOW(), ?)
+            (
+                huesped_id,
+                habitacion_id,
+                fecha_check_in,
+                fecha_check_out,
+                numero_huespedes,
+                personas_extra,
+                estado,
+                total,
+                metodo_pago,
+                tipo_ocupacion,
+                fecha_creacion,
+                descuento_aplicado
+            )
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), ?)
         ";
 
         $stmt = $this->conn->prepare($sql);
+
+        $estado = "Reservada";
+        $tipo   = "Reserva";
+
+        // ORDEN EXACTO DE CAMPOS en tu tabla → 11 variables
         $stmt->bind_param(
-            "iissiidss",
-            $huespedId,
-            $habitacionId,
-            $fechaCheckIn,
-            $fechaCheckOut,
-            $numHuespedes,
-            $personasExtra,
-            $total,
-            $metodoPago,
-            $descuento
+            "iissiisdssd",
+            $data['huesped_id'],
+            $data['habitacion_id'],
+            $data['fecha_check_in'],
+            $data['fecha_check_out'],
+            $data['numero_huespedes'],
+            $data['personas_extra'],
+            $estado,
+            $data['total'],
+            $data['metodo_pago'],
+            $tipo,
+            $data['descuento_aplicado']
         );
 
         if (!$stmt->execute()) {
@@ -217,25 +174,16 @@ class Movimiento
             return false;
         }
 
-        $nuevoId = $stmt->insert_id;
+        $id = $stmt->insert_id;
         $stmt->close();
-
-        // NO se toca la habitación
-        return $nuevoId;
+        return $id;
     }
 
     // ============================================================
-    // 4) ACTIVAR RESERVA (cuando el huésped llega)
+    // 4) ACTIVAR RESERVA
     // ============================================================
-    //
-    // Reglas:
-    // - Solo aplica si tipo_ocupacion = 'Reserva'
-    // - estado pasa de 'Reservada' a 'Activa'
-    // - Acción automática #2: habitación → 'ocupado'
-    //
     public function activarReserva($id, &$error = null)
     {
-        // Obtener movimiento
         $mov = $this->obtenerPorId($id);
         if (!$mov) {
             $error = "Movimiento no encontrado.";
@@ -243,35 +191,24 @@ class Movimiento
         }
 
         if ($mov['tipo_ocupacion'] !== 'Reserva') {
-            $error = "Solo se pueden activar registros de tipo Reserva.";
+            $error = "Solo se pueden activar reservas.";
             return false;
         }
 
         $sql = "UPDATE {$this->table} SET estado = 'Activa' WHERE id = ?";
         $stmt = $this->conn->prepare($sql);
         $stmt->bind_param("i", $id);
-
-        if (!$stmt->execute()) {
-            $error = "Error al activar la reserva: " . $stmt->error;
-            $stmt->close();
-            return false;
-        }
+        $stmt->execute();
         $stmt->close();
 
-        // Acción automática #2: poner habitación en 'ocupado'
         $this->cambiarEstadoHabitacion($mov['habitacion_id'], 'ocupado');
 
         return true;
     }
 
     // ============================================================
-    // 5) FINALIZAR ESTANCIA (cuando el huésped se va)
+    // 5) FINALIZAR ESTANCIA
     // ============================================================
-    //
-    // Reglas:
-    // - estado pasa a 'Finalizada'
-    // - NO se toca la habitación (el recepcionista la pasa a Limpieza manualmente)
-    //
     public function finalizarEstancia($id, &$error = null)
     {
         $mov = $this->obtenerPorId($id);
@@ -283,19 +220,14 @@ class Movimiento
         $sql = "UPDATE {$this->table} SET estado = 'Finalizada' WHERE id = ?";
         $stmt = $this->conn->prepare($sql);
         $stmt->bind_param("i", $id);
-
-        if (!$stmt->execute()) {
-            $error = "Error al finalizar la estancia: " . $stmt->error;
-            $stmt->close();
-            return false;
-        }
-
+        $stmt->execute();
         $stmt->close();
+
         return true;
     }
 
     // ============================================================
-    // 6) OBTENER MOVIMIENTO POR ID
+    // 6) OBTENER POR ID
     // ============================================================
     public function obtenerPorId($id)
     {
@@ -303,19 +235,15 @@ class Movimiento
         $stmt = $this->conn->prepare($sql);
         $stmt->bind_param("i", $id);
         $stmt->execute();
-        $res = $stmt->get_result();
-        $row = $res->fetch_assoc();
+        $res = $stmt->get_result()->fetch_assoc();
         $stmt->close();
 
-        return $row;
+        return $res;
     }
 
     // ============================================================
     // 7) LISTAR MOVIMIENTOS POR MES/AÑO
     // ============================================================
-    //
-    // Para la vista principal del módulo.
-    //
     public function listarPorMes($anio, $mes)
     {
         $sql = "
@@ -331,15 +259,14 @@ class Movimiento
         $stmt = $this->conn->prepare($sql);
         $stmt->bind_param("ii", $anio, $mes);
         $stmt->execute();
-        $res = $stmt->get_result();
-        $movimientos = $res->fetch_all(MYSQLI_ASSOC);
+        $res = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
         $stmt->close();
 
-        return $movimientos;
+        return $res;
     }
 
     // ============================================================
-    // 8) Cambiar estado de una habitación (uso interno)
+    // 8) CAMBIAR ESTADO HABITACIÓN
     // ============================================================
     private function cambiarEstadoHabitacion($habitacionId, $nuevoEstado)
     {
