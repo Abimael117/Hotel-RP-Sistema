@@ -3,13 +3,18 @@ require_once("../config/auth_middleware.php");
 require_once("../config/db.php");
 require_once("../models/Movimiento.php");
 require_once("../models/Habitacion.php");
+require_once("../models/Actividad.php");
 
-// Instancias de modelos
+// Instanciar models
 $movModel = new Movimiento($conn);
 $habModel = new Habitacion($conn);
+$actModel = new Actividad($conn);
+
+// Usuario que hace este movimiento
+$usuarioId = $_SESSION["usuario_id"];
 
 // ===========================================================
-// SI EL FORMULARIO AÚN NO SE ENVÍA → SOLO MOSTRAR FORMULARIO
+// SI EL FORMULARIO AÚN NO SE ENVÍA → MOSTRAR FORMULARIO
 // ===========================================================
 if ($_SERVER["REQUEST_METHOD"] !== "POST") {
 
@@ -21,7 +26,7 @@ if ($_SERVER["REQUEST_METHOD"] !== "POST") {
     $res = $conn->query($sql);
     $huespedes = $res->fetch_all(MYSQLI_ASSOC);
 
-    // Tipos de precios (para ocupación)
+    // Tipos de precios
     $precios = $conn->query("SELECT * FROM tipos_precios")->fetch_all(MYSQLI_ASSOC);
 
     include("../public/form_estancia.php");
@@ -51,17 +56,17 @@ if ($fechaCheckOut <= $fechaCheckIn) $errores[] = "La fecha de salida debe ser m
 
 if (!empty($errores)) {
     $habitaciones = $habModel->obtenerTodas();
-
-    $sql = "SELECT * FROM huespedes ORDER BY nombre_completo ASC";
-    $huespedes = $conn->query($sql)->fetch_all(MYSQLI_ASSOC);
-
+    $huespedes = $conn->query("SELECT * FROM huespedes ORDER BY nombre_completo ASC")->fetch_all(MYSQLI_ASSOC);
     $precios = $conn->query("SELECT * FROM tipos_precios")->fetch_all(MYSQLI_ASSOC);
 
     include("../public/form_estancia.php");
     exit;
 }
 
-// Datos para modelo
+// ===========================================================
+// GUARDAR ESTANCIA EN DB
+// ===========================================================
+
 $data = [
     "habitacion_id"     => $habitacionId,
     "huesped_id"        => $huespedId,
@@ -89,7 +94,15 @@ if (!$estanciaId) {
     exit;
 }
 
-// Todo bien → redirigir
+// ===========================================================
+// REGISTRAR ACTIVIDAD
+// ===========================================================
+
+$descripcion = "Se creó una estancia en la habitación $habitacionId";
+$actModel->registrar($usuarioId, $descripcion, "estancia", $estanciaId);
+
+// ===========================================================
+// TODO BIEN — REDIRIGIR
+// ===========================================================
 header("Location: movimientos.php?msg=estancia_creada");
 exit;
-

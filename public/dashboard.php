@@ -1,7 +1,10 @@
 <?php
-require_once("../config/auth_middleware.php"); // <-- NUEVO
+require_once("../config/auth_middleware.php");
 require_once("../config/db.php");
+require_once("../models/Actividad.php");
 
+// Instancia de Actividad
+$actModel = new Actividad($conn);
 
 // ==========================================
 // MÉTRICAS PRINCIPALES
@@ -15,16 +18,14 @@ $ingresos = $conn->query("
     AND fecha_check_in >= DATE_SUB(CURDATE(), INTERVAL 30 DAY)
 ")->fetch_assoc()['total'];
 
-// Total de reservas
+// Total de reservas del mes actual
 $totalReservas = $conn->query("
     SELECT COUNT(*) AS total
     FROM reservas
-    WHERE tipo_ocupacion = 'Reserva'
+    WHERE estado = 'Reservada'
       AND MONTH(fecha_check_in) = MONTH(CURDATE())
       AND YEAR(fecha_check_in) = YEAR(CURDATE())
 ")->fetch_assoc()['total'];
-
-
 
 
 // Total habitaciones
@@ -33,22 +34,22 @@ $habitacionesTotales = $conn->query("
     FROM habitaciones
 ")->fetch_assoc()['total'];
 
-// Habitaciones disponibles (REAL)
+// Habitaciones disponibles
 $habDisponibles = $conn->query("
     SELECT COUNT(*) AS total 
     FROM habitaciones 
     WHERE estado = 'disponible'
 ")->fetch_assoc()['total'];
 
-// Habitaciones ocupadas (REAL)
+// Habitaciones ocupadas
 $habOcupadas = $habitacionesTotales - $habDisponibles;
 
-// Tasa de ocupación REAL
+// Tasa de ocupación
 $tasaOcupacion = ($habitacionesTotales > 0)
     ? round(($habOcupadas / $habitacionesTotales) * 100, 1)
     : 0;
 
-// Huéspedes principales
+// Huéspedes principales (por gasto)
 $huespedesTop = $conn->query("
     SELECT hu.nombre_completo, SUM(r.total) AS gasto
     FROM reservas r
@@ -59,15 +60,8 @@ $huespedesTop = $conn->query("
     LIMIT 5
 ")->fetch_all(MYSQLI_ASSOC);
 
-// Actividad reciente (mientras no exista la tabla de actividad REAL)
-$actividad = $conn->query("
-    SELECT CONCAT('Reserva ', id) AS titulo,
-           fecha_creacion
-    FROM reservas
-    ORDER BY fecha_creacion DESC
-    LIMIT 6
-")->fetch_all(MYSQLI_ASSOC);
-
+// Actividad RECENTE REAL
+$actividad = $actModel->recientes(6);
 
 include("../views/layout/header.php");
 ?>
@@ -79,7 +73,7 @@ include("../views/layout/header.php");
 <div class="dashboard-grid">
 
     <div class="card-metric">
-        <p class="metric-title">Ingresos Totales</p>
+        <p class="metric-title">Ingresos Últimos 30 días</p>
         <h2 class="metric-value">$<?= number_format($ingresos, 2); ?></h2>
     </div>
 
@@ -131,15 +125,25 @@ include("../views/layout/header.php");
     <h2>Actividad Reciente</h2>
 
     <div class="activity-list">
-        <?php foreach ($actividad as $a): ?>
-        <div class="activity-item">
-            <div class="activity-dot"></div>
-            <div>
-                <p class="activity-text"><?= $a['titulo']; ?></p>
-                <span class="activity-time"><?= $a['fecha_creacion']; ?></span>
-            </div>
-        </div>
-        <?php endforeach; ?>
+
+        <?php if (empty($actividad)): ?>
+            <p>No hay actividad registrada aún.</p>
+
+        <?php else: ?>
+            <?php foreach ($actividad as $a): ?>
+                <div class="activity-item">
+                    <div class="activity-dot"></div>
+                    <div>
+                        <p class="activity-text">
+                            <strong><?= $a['usuario'] ?></strong>
+                            <?= $a['descripcion'] ?>
+                        </p>
+                        <span class="activity-time"><?= $a['fecha'] ?></span>
+                    </div>
+                </div>
+            <?php endforeach; ?>
+        <?php endif; ?>
+
     </div>
 </div>
 

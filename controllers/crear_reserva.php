@@ -3,13 +3,18 @@ require_once("../config/auth_middleware.php");
 require_once("../config/db.php");
 require_once("../models/Movimiento.php");
 require_once("../models/Habitacion.php");
+require_once("../models/Actividad.php");
 
 // Instanciar modelos
 $movModel = new Movimiento($conn);
 $habModel = new Habitacion($conn);
+$actModel = new Actividad($conn);
+
+// ID del usuario que hace el movimiento
+$usuarioId = $_SESSION["usuario_id"];
 
 // ===========================================================
-// SI EL FORMULARIO AÚN NO SE ENVÍA → SOLO MOSTRAR FORMULARIO
+// SI EL FORMULARIO NO SE ENVÍA → MOSTRAR FORMULARIO
 // ===========================================================
 if ($_SERVER["REQUEST_METHOD"] !== "POST") {
 
@@ -21,7 +26,7 @@ if ($_SERVER["REQUEST_METHOD"] !== "POST") {
     $res = $conn->query($sql);
     $huespedes = $res->fetch_all(MYSQLI_ASSOC);
 
-    // Tipos de precios (para ocupación)
+    // Tipos de precios
     $precios = $conn->query("SELECT * FROM tipos_precios")->fetch_all(MYSQLI_ASSOC);
 
     include("../public/form_reserva.php");
@@ -61,7 +66,10 @@ if (!empty($errores)) {
     exit;
 }
 
-// Datos a enviar al modelo
+// ===========================================================
+// GUARDAR RESERVA
+// ===========================================================
+
 $data = [
     "habitacion_id"     => $habitacionId,
     "huesped_id"        => $huespedId,
@@ -75,8 +83,6 @@ $data = [
 ];
 
 $error = null;
-
-// Crear reserva (NO cambia estado de habitación)
 $reservaId = $movModel->crearReserva($data, $error);
 
 if (!$reservaId) {
@@ -92,6 +98,14 @@ if (!$reservaId) {
     exit;
 }
 
-// Todo bien
+// ===========================================================
+// REGISTRAR ACTIVIDAD
+// ===========================================================
+$descripcion = "Se creó una reserva para la habitación $habitacionId";
+$actModel->registrar($usuarioId, $descripcion, "reserva", $reservaId);
+
+// ===========================================================
+// TODO BIEN — REDIRIGIR
+// ===========================================================
 header("Location: movimientos.php?msg=reserva_creada");
 exit;

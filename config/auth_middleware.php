@@ -10,9 +10,14 @@ if (!isset($_SESSION["user"])) {
     exit;
 }
 
-// ------------------------------
-//  PROTECCIÓN POR ROLES (OPCIÓN 2)
-// ------------------------------
+// ===============================
+// NORMALIZAR ID DE USUARIO
+// ===============================
+$_SESSION["usuario_id"] = $_SESSION["user"]["id"];
+
+// ===============================
+// PROTECCIÓN POR ROLES
+// ===============================
 
 // Archivos que SOLO un admin puede ver
 $soloAdmin = [
