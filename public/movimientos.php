@@ -1,4 +1,16 @@
 <?php
+function formatearFechaES($fechaISO) {
+    $fmt = new IntlDateFormatter(
+        'es_MX',
+        IntlDateFormatter::FULL,
+        IntlDateFormatter::NONE
+    );
+
+    return ucfirst($fmt->format(strtotime($fechaISO)));
+}
+?>
+
+<?php
 include("../views/layout/header.php");
 ?>
 
@@ -79,79 +91,80 @@ include("../views/layout/header.php");
             </thead>
 
             <tbody>
-                <?php if (empty($movimientos)) : ?>
-                    <tr>
-                        <td colspan="7" class="tabla-vacio">
-                            No hay movimientos registrados en este mes.
-                        </td>
-                    </tr>
-                <?php else : ?>
 
-                    <?php foreach ($movimientos as $mov) : ?>
+<?php if (empty($movimientos)): ?>
 
-                        <tr>
+    <tr>
+        <td colspan="7" class="tabla-vacio">No hay movimientos registrados en este mes.</td>
+    </tr>
 
-                            <td><?= htmlspecialchars($mov['nombre_huesped']) ?></td>
+<?php else: ?>
 
-                            <td>
-                                Habitación <?= htmlspecialchars($mov['numero_habitacion']) ?>
-                            </td>
+    <?php
+    $ultimoDia = "";
 
-                            <td>
-                                <?= htmlspecialchars($mov['fecha_check_in']) ?>
-                                —
-                                <?= htmlspecialchars($mov['fecha_check_out']) ?>
-                            </td>
+    foreach ($movimientos as $mov):
 
-                            <td>
-                                <span class="tag tipo-<?= strtolower($mov['tipo_ocupacion']) ?>">
-                                    <?= htmlspecialchars($mov['tipo_ocupacion']) ?>
-                                </span>
-                            </td>
+        // Formateo del día (sin strftime)
+        $dia = formatearFechaES($mov['fecha_check_in']);
 
-                            <td>
-                                <span class="tag estado-<?= strtolower($mov['estado']) ?>">
-                                    <?= htmlspecialchars($mov['estado']) ?>
-                                </span>
-                            </td>
+        // Si es un día nuevo → imprimimos separador estilo Google Photos
+        if ($dia !== $ultimoDia):
+            echo "<tr class='separador-dia'><td colspan='7'>$dia</td></tr>";
+            $ultimoDia = $dia;
+        endif;
+    ?>
 
-                            <td>
-                                $<?= number_format($mov['total'], 2) ?>
-                            </td>
+        <tr>
 
-                            <td class="td-acciones">
+            <td><?= htmlspecialchars($mov['nombre_huesped']) ?></td>
 
-                                <?php if ($mov['tipo_ocupacion'] === "Reserva" && $mov['estado'] === "Reservada") : ?>
-                                    <a href="activar_reserva.php?id=<?= $mov['id'] ?>" class="accion-btn accion-activar">
-                                        Activar
-                                    </a>
-                                    <a href="editar_reserva.php?id=<?= $mov['id'] ?>" class="accion-btn accion-editar">
-                                        Editar
-                                    </a>
-                                    <a href="cancelar_reserva.php?id=<?= $mov['id'] ?>" class="accion-btn accion-eliminar">
-                                        Eliminar
-                                    </a>
-                                <?php endif; ?>
+            <td>Habitación <?= htmlspecialchars($mov['numero_habitacion']) ?></td>
 
-                                <?php if ($mov['estado'] === "Activa") : ?>
-                                    <a href="finalizar_estancia.php?id=<?= $mov['id'] ?>" class="accion-btn accion-finalizar">
-                                        Finalizar
-                                    </a>
-                                <?php endif; ?>
+            <td>
+                <?= htmlspecialchars($mov['fecha_check_in']) ?>
+                —
+                <?= htmlspecialchars($mov['fecha_check_out']) ?>
+            </td>
 
+            <td>
+                <span class="tag tipo-<?= strtolower($mov['tipo_ocupacion']) ?>">
+                    <?= htmlspecialchars($mov['tipo_ocupacion']) ?>
+                </span>
+            </td>
 
-                                <a href="ver_movimiento.php?id=<?= $mov['id'] ?>" class="accion-btn accion-ver">
-                                    Ver
-                                </a>
+            <td>
+                <span class="tag estado-<?= strtolower($mov['estado']) ?>">
+                    <?= htmlspecialchars($mov['estado']) ?>
+                </span>
+            </td>
 
-                            </td>
+            <td>$<?= number_format($mov['total'], 2) ?></td>
 
-                        </tr>
+            <td class="td-acciones">
 
-                    <?php endforeach; ?>
-
+                <?php if ($mov['tipo_ocupacion'] === "Reserva" && $mov['estado'] === "Reservada"): ?>
+                    <a href="activar_reserva.php?id=<?= $mov['id'] ?>" class="accion-btn accion-activar">Activar</a>
+                    <a href="editar_reserva.php?id=<?= $mov['id'] ?>" class="accion-btn accion-editar">Editar</a>
+                    <a href="cancelar_reserva.php?id=<?= $mov['id'] ?>" class="accion-btn accion-eliminar">Eliminar</a>
                 <?php endif; ?>
-            </tbody>
+
+                <?php if ($mov['estado'] === "Activa"): ?>
+                    <a href="finalizar_estancia.php?id=<?= $mov['id'] ?>" class="accion-btn accion-finalizar">Finalizar</a>
+                <?php endif; ?>
+
+                <a href="ver_movimiento.php?id=<?= $mov['id'] ?>" class="accion-btn accion-ver">Ver</a>
+
+            </td>
+
+        </tr>
+
+    <?php endforeach; ?>
+
+<?php endif; ?>
+
+</tbody>
+
 
         </table>
 

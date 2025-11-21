@@ -14,8 +14,9 @@ body {
 /* ====== LAYOUT GENERAL ====== */
 .main-wrapper {
     display: flex;
-    height: 100vh;
+    min-height: 100vh;   /* ✔ ahora crece si el contenido es mayor */
 }
+
 
 /* ====== SIDEBAR ====== */
 .sidebar {

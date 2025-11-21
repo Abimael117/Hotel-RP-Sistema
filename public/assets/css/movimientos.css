@@ -302,3 +302,14 @@
 .accion-eliminar:hover {
     background-color: #6c3483;
 }
+
+
+.separador-dia {
+    font-weight: 700;
+    font-size: 18px;
+    color: #1e293b;
+    padding: 12px 0;
+    background: #f1f5f9;
+    border-top: 2px solid #cbd5e1;
+    border-bottom: 2px solid #cbd5e1;
+}

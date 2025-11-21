@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Servidor: 127.0.0.1:3306
--- Tiempo de generación: 19-11-2025 a las 16:58:31
+-- Tiempo de generación: 21-11-2025 a las 02:30:38
 -- Versión del servidor: 9.1.0
 -- Versión de PHP: 8.3.14
 
@@ -20,8 +20,6 @@ SET time_zone = "+00:00";
 --
 -- Base de datos: `bd_hotel`
 --
-CREATE DATABASE IF NOT EXISTS `bd_hotel` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci;
-USE `bd_hotel`;
 
 -- --------------------------------------------------------
 
@@ -39,7 +37,7 @@ CREATE TABLE IF NOT EXISTS `actividades` (
   `fecha` datetime DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   KEY `usuario_id` (`usuario_id`)
-) ENGINE=MyISAM AUTO_INCREMENT=11 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=MyISAM AUTO_INCREMENT=29 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- --------------------------------------------------------
 
@@ -57,15 +55,15 @@ CREATE TABLE IF NOT EXISTS `habitaciones` (
   `estado` enum('disponible','limpieza','mantenimiento','ocupado','reservado') NOT NULL DEFAULT 'disponible',
   PRIMARY KEY (`id`),
   KEY `tipo_id` (`tipo_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=26 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=27 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 --
 -- Volcado de datos para la tabla `habitaciones`
 --
 
 INSERT INTO `habitaciones` (`id`, `numero`, `tipo_id`, `capacidad`, `precio_noche`, `estado`) VALUES
-(1, '101', 1, 2, 840.00, 'ocupado'),
-(2, '102', 1, 2, 840.00, 'ocupado'),
+(1, '101', 1, 2, 840.00, 'disponible'),
+(2, '102', 1, 2, 840.00, 'disponible'),
 (3, '103', 1, 2, 840.00, 'disponible'),
 (4, '104', 1, 2, 840.00, 'disponible'),
 (5, '105', 1, 2, 840.00, 'disponible'),
@@ -97,15 +95,7 @@ CREATE TABLE IF NOT EXISTS `huespedes` (
   `telefono` varchar(20) DEFAULT NULL,
   `fecha_registro` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`)
-) ENGINE=MyISAM AUTO_INCREMENT=7 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-
---
--- Volcado de datos para la tabla `huespedes`
---
-
-INSERT INTO `huespedes` (`id`, `nombre_completo`, `email`, `telefono`, `fecha_registro`) VALUES
-(1, 'Abimael Méndez', 'abimael@example.com', '6691234567', '2025-11-15 04:06:10'),
-(6, 'Sara', 'sara@gmail.com', '9821086734', '2025-11-18 21:14:23');
+) ENGINE=MyISAM AUTO_INCREMENT=8 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- --------------------------------------------------------
 
@@ -146,7 +136,7 @@ CREATE TABLE IF NOT EXISTS `reservas` (
   `fecha_creacion` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   `descuento_aplicado` tinyint(1) DEFAULT '0',
   PRIMARY KEY (`id`)
-) ENGINE=MyISAM AUTO_INCREMENT=44 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=MyISAM AUTO_INCREMENT=52 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- --------------------------------------------------------
 
@@ -220,8 +210,7 @@ CREATE TABLE IF NOT EXISTS `usuarios` (
 --
 
 INSERT INTO `usuarios` (`id`, `nombre`, `email`, `password_hash`, `rol`, `avatar_base64`, `fecha_creacion`) VALUES
-(1, 'admin', 'admin@rp.com', '$2y$10$rCJWYgBsXsxhAfPJabl3LO8Kmh7wWySWgAVuerOSEedvMxXlLVLNm', 'admin', NULL, '2025-11-13 18:49:50'),
-(4, 'personal', 'personal@rp.com', '$2y$10$s.PMQPqXLtXAdTkxV.r12.30f1D/Tx3KNRy.vZyEGDQLacpPW502K', 'personal', NULL, '2025-11-16 18:20:47');
+(1, 'admin', 'admin', '$2y$10$rCJWYgBsXsxhAfPJabl3LO8Kmh7wWySWgAVuerOSEedvMxXlLVLNm', 'admin', NULL, '2025-11-13 18:49:50');
 
 --
 -- Restricciones para tablas volcadas

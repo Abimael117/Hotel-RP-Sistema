@@ -51,13 +51,15 @@ $tasaOcupacion = ($habitacionesTotales > 0)
 
 // Huéspedes principales (por gasto)
 $huespedesTop = $conn->query("
-    SELECT hu.nombre_completo, SUM(r.total) AS gasto
-    FROM reservas r
-    JOIN huespedes hu ON hu.id = r.huesped_id
-    WHERE r.estado='Activa'
-    GROUP BY hu.id
-    ORDER BY gasto DESC
-    LIMIT 5
+    SELECT 
+    hu.nombre_completo, 
+    SUM(r.total) AS gasto
+FROM reservas r
+JOIN huespedes hu ON hu.id = r.huesped_id
+WHERE r.estado='Finalizada'
+GROUP BY hu.id
+ORDER BY gasto DESC
+LIMIT 5;
 ")->fetch_all(MYSQLI_ASSOC);
 
 // Actividad RECENTE REAL

@@ -25,8 +25,8 @@ $error = isset($_GET['error']);
 
         <form action="../controllers/auth.php" method="POST">
 
-            <label>Email:</label>
-            <input type="email" name="email" placeholder="admin@rp.com" required>
+            <label>Usuario:</label>
+            <input type="text" name="email" placeholder="admin" required>
 
             <label>Contraseña:</label>
             <input type="password" name="password" required>

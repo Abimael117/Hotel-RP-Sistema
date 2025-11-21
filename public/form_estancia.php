@@ -164,6 +164,10 @@ let precioBaseGlobal = 0;
 // ACTUALIZAR PRECIO BASE
 // =========================================
 function actualizarPrecio() {
+
+    // Guardar selección previa
+    const selectedBefore = ocupacionSel.value;
+
     const habitacion = habitacionSel.options[habitacionSel.selectedIndex];
     if (!habitacion) return;
 
@@ -178,10 +182,11 @@ function actualizarPrecio() {
     if (preciosTipo.length === 1) {
         precioBase = parseFloat(preciosTipo[0].precio);
         divOcupacion.style.display = "none";
-
-    } else {
+    } 
+    else {
         // VARIAS TARIFAS → MOSTRAR SELECT
         divOcupacion.style.display = "block";
+
         ocupacionSel.innerHTML = "";
 
         preciosTipo.forEach(p => {
@@ -192,7 +197,15 @@ function actualizarPrecio() {
             ocupacionSel.appendChild(opt);
         });
 
-        precioBase = parseFloat(ocupacionSel.options[0].dataset.precio);
+        // Restaurar selección previa si existe
+        const optionToSelect = [...ocupacionSel.options].find(o => o.value === selectedBefore);
+        if (optionToSelect) {
+            ocupacionSel.value = selectedBefore;
+            precioBase = parseFloat(selectedBefore);
+        } else {
+            // Sino, tomamos la primera opción
+            precioBase = parseFloat(ocupacionSel.options[0].dataset.precio);
+        }
     }
 
     // PERSONAS EXTRA
@@ -200,8 +213,7 @@ function actualizarPrecio() {
     const extra = parseInt(personasExtra.value) || 0;
     total += extra * 100;
 
-    precioBaseGlobal = total;   // Guardamos precio antes de descuento
-
+    precioBaseGlobal = total; 
     aplicarDescuento();
 }
 
