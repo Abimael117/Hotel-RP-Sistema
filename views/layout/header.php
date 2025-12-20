@@ -37,7 +37,7 @@ $user = $_SESSION['user'] ?? null;
             <li><a href="../public/calendario.php">Calendario</a></li>
             <?php if ($user['rol'] === 'admin'): ?>
                 <li><a href="../controllers/usuarios.php">Usuarios</a></li>
-                <li><a href="../controllers/reportes.php">Reportes</a></li>
+                <!--<li><a href="../controllers/reportes.php">Reportes</a></li>-->
             <?php endif; ?>
 
             <li><a href="../controllers/logout.php">Cerrar sesión</a></li>

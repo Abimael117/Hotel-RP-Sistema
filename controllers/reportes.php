@@ -1,11 +1,11 @@
 <?php
-require_once("../config/auth_middleware.php"); // <-- NUEVO
+require_once("../config/auth_middleware.php");
 require_once("../config/db.php");
 
 
-// ==========================================
+// =====================================================
 // INGRESOS POR MES (últimos 6 meses)
-// ==========================================
+// =====================================================
 
 $sqlIngresos = "
     SELECT 
@@ -24,9 +24,10 @@ while ($row = $resIngresos->fetch_assoc()) {
     $ingresosMes[] = $row;
 }
 
-// ==========================================
-// TENDENCIA DE OCUPACIÓN (últimos 7 días)
-// ==========================================
+
+// =====================================================
+// TENDENCIA DE OCUPACIÓN REAL (últimos 7 días)
+// =====================================================
 
 $dias = [];
 $ocupacion = [];
@@ -39,17 +40,18 @@ for ($i = 6; $i >= 0; $i--) {
         SELECT COUNT(*) AS ocupadas
         FROM reservas
         WHERE estado='Activa'
-        AND '$dia' BETWEEN fecha_check_in AND fecha_check_out
+        AND fecha_check_in <= '$dia'
+        AND fecha_check_out > '$dia'
     ";
 
     $res = $conn->query($sqlOcup);
-    $ocup = $res->fetch_assoc()['ocupadas'] ?? 0;
-
-    $ocupacion[] = $ocup;
+    $ocupacion[] = $res->fetch_assoc()['ocupadas'] ?? 0;
 }
+
 
 // Total habitaciones
 $totalHabitaciones = $conn->query("SELECT COUNT(*) AS total FROM habitaciones")
                           ->fetch_assoc()['total'];
 
 include("../public/reportes.php");
+?>
